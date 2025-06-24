@@ -4,18 +4,17 @@ from openai import OpenAI
 st.title("AI 이미지 생성기 GPT-Dall-e-3")
 st.write("한글로 원하는 그림 설명하면 프롬프트로 완성해주고, 최종 이미지를 생성합니다")
 
-def make_label(key):
-    # 입력값 있으면 체크이모티콘, 없으면 빈문자
-    return f'OpenAI API KEY 입력 {"<span style=\"color:#27ae60;font-size:22px;vertical-align:middle;\">&#10004;</span>" if key else ""}'
-
 # API KEY 입력
+api_label = "OpenAI API KEY 입력"
+if openai_api_key:
+    api_label += " <span style='color:#27ae60;font-size:22px;vertical-align:middle;'>&#10004;</span>"
+
+st.sidebar.markdown(api_label, unsafe_allow_html=True)
 openai_api_key = st.sidebar.text_input(
-    label=make_label(st.session_state.get("openai_api_key", "")),
-    value=st.session_state.get("openai_api_key", ""),
+    label="",  # label은 비우고
     key="openai_api_key",
     type="password",
-    help="OpenAI API 키를 입력하세요.",
-    label_visibility="visible"
+    help="OpenAI API 키를 입력하세요."
 )
 
 # **여기서 label에 HTML을 넣어야 하므로 markdown 사용**
