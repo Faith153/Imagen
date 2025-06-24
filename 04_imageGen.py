@@ -1,8 +1,8 @@
 import streamlit as st 
 from openai import OpenAI
 
-st.title("AI 이미지 생성기 GPT-Dall-e-3")
-st.write("한글로 원하는 그림 설명하면 프롬프트로 완성해주고, 최종 이미지를 생성합니다")
+st.title("AI 이미지 생성기")
+st.write("한글로 원하는 그림 설명하면 프롬프트로 완성해주고, 최종 이미지 생성")
 
 # API KEY 입력
 st.sidebar.title("API KEY 입력")
