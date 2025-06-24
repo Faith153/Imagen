@@ -191,16 +191,16 @@ if st.button("1차 프롬프트 자동 생성"):
             st.session_state['eng_prompt'] = eng_block
             st.session_state['kor_desc'] = kor_desc
 
-            # ─── 프롬프트 해설(kor_desc) 요약(매번 갱신) ───            
-                resp = client.chat.completions.create(
-                    model="gpt-4.1-mini",
-                    messages=[{
-                        "role":"user",
-                        "content":f"아래 한글 요청을 10자 이내로 핵심만 요약해줘:\n{kor_desc}"
-                    }],
-                    temperature=0.2
-                )
-                st.session_state['summary'] = resp.choices[0].message.content.strip()
+            # ─── 프롬프트 해설(kor_desc) 요약(매번 갱신) ───
+            resp = client.chat.completions.create(
+                model="gpt-4.1-mini",
+                messages=[{
+                    "role":"user",
+                    "content":f"아래 한글 해설을 10자 이내로 요약해줘:\n{kor_desc}"
+                }],
+                temperature=0.2
+            )
+            st.session_state['summary'] = resp.choices[0].message.content.strip()
 
 # 2차: 프롬프트 결과/수정/리프롬프트
 if st.session_state.get('eng_prompt'):
@@ -292,7 +292,7 @@ if st.session_state["all_images"]:
                     item = imgs[idx]
                     col.image(
                         item["url"],
-                        caption=f"이미지{idx+1} : {st.session_state['summary']}",
+                        caption=f"이미지{idx+1} : {item['caption']}",
                         use_container_width=True
                     )
                     # ─── img_data 정의 후 다운로드 버튼 ───
