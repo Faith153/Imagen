@@ -2,12 +2,16 @@ import streamlit as st
 from openai import OpenAI
 import re
 import requests
+import time
+import os
+import json
 
 # API KEY from Streamlit TOML
 API_KEY = st.secrets['openai']['API_KEY']
 client = OpenAI(api_key=API_KEY)
 
-#사이드바 항상 열림
+# -----------------------------------------------------------
+# 사이드바 항상 열림 (UI/UX 개선용)
 st.markdown("""
     <style>
     [data-testid="stSidebar"][aria-expanded="false"] {
@@ -19,49 +23,99 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-#========이용자코드&한도설정============
-st.markdown("""
-    <style>
-    [data-testid="stSidebar"][aria-expanded="false"] {
-        min-width: 340px;
-        max-width: 340px;
-        width: 340px;
-        transition: all 0.3s;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# ===========================================================
+# ========== 이용자 코드 입력 및 30분 제한 구현 =============
 
-# 3. --- [이용자 코드] & [한도 설정] ---
-user_code = st.sidebar.text_input("이용자 코드 입력", max_chars=16)
+# 1. 실패 로그 기록(쿠키/DB 대신 파일캐시 활용)
+def fail_log_path():
+    # 유저 IP + 오늘 날짜로 파일명 구성(봇방지용)
+    if hasattr(st.runtime, 'scriptrunner'):
+        try:
+            ip = st.runtime.scriptrunner.get_script_run_ctx().client_ip
+        except:
+            ip = "default"
+    else:
+        ip = "default"
+    now_day = time.strftime("%Y%m%d")
+    return f".failcount_{ip}_{now_day}.json"
 
-# 코드별 생성 한도 (코드/장수)
-user_limits = {
-    "0316": 6,
-    "faith": 50,
-    "aledma": -1  # 무제한
-}
+def get_fail_info():
+    path = fail_log_path()
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            try:
+                obj = json.load(f)
+                return obj.get("fail_count", 0), obj.get("fail_time", 0)
+            except:
+                return 0, 0
+    return 0, 0
 
-# 세션 사용량 관리(코드 바뀌면 초기화)
+def set_fail_info(fail_count, fail_time):
+    path = fail_log_path()
+    with open(path, "w") as f:
+        json.dump({"fail_count": fail_count, "fail_time": fail_time}, f)
+        
+# 2. 현재 실패 정보 확인
+fail_count, fail_time = get_fail_info()
+blocked = False
+block_seconds = 30 * 60  # 30분
+
+if fail_count >= 5:
+    # 마지막 실패 이후 30분 경과 체크
+    now = time.time()
+    if now - fail_time < block_seconds:
+        blocked = True
+        left_min = int((block_seconds - (now - fail_time)) // 60) + 1
+        st.sidebar.error(f"5회 이상 오류로 30분간 입력 불가. ({left_min}분 후 재시도)")
+    else:
+        # 제한 해제
+        set_fail_info(0, 0)
+        fail_count, fail_time = 0, 0
+        blocked = False
+
+# 3. 사이드바 코드 입력(비활성화/활성화)
+user_code = st.sidebar.text_input("이용자 코드 입력", max_chars=16, disabled=blocked)
+
+# 4. 코드별 한도(secrets.toml에서 바로!)
+user_limits = st.secrets["user_codes"]                   # secrets.toml의 [user_codes] 전체 딕셔너리
+limit = int(user_limits.get(user_code, 0))               # user_code 키로 한도를 꺼내 정수로 변환, 없으면 0
+
+
+# 5. 세션 사용량 관리(코드 바뀌면 초기화)
 if "used_count" not in st.session_state or st.session_state.get("last_user_code") != user_code:
     st.session_state["used_count"] = 0
     st.session_state["last_user_code"] = user_code
 
-# 한도 로딩
-if user_code in user_limits:
-    limit = user_limits[user_code]
-    if limit > 0:
-        st.sidebar.info(f"사용 가능 이미지: {limit - st.session_state['used_count']}장 남음")
-    elif limit == -1:
-        st.sidebar.info("무제한(관리자 코드)")
+# 6. 한도 체크 및 실패 처리
+if user_code:
+    # (limit이 0보다 크거나 -1인 경우만 유효 코드로 간주)
+    if limit > 0 or limit == -1:
+        # 성공 시 실패카운트/파일 초기화
+        set_fail_info(0, 0)                         # (파일에 남아 있던 fail_count, fail_time을 0으로 초기화)
+        fail_count = 0                              # (로컬 변수도 초기화)
+        if limit > 0:
+            st.sidebar.info(f"사용 가능 이미지: {limit - st.session_state['used_count']}장 남음")
+        else:
+            st.sidebar.info("무제한 코드")          # (limit == -1일 때)
+    else:
+        # 실패 카운트 증가, 5회시 시간 저장
+        fail_count += 1                            # (틀릴 때마다 1씩 증가)
+        # 5회 차단 시점에만 시간 갱신
+        set_fail_info(fail_count,
+                      int(time.time()) if fail_count >= 5 else fail_time)
+        if fail_count >= 5:
+            st.sidebar.error("5회 이상 오류로 30분간 입력이 차단됩니다.")
+        else:
+            st.sidebar.warning(f"유효하지 않은 코드입니다! (실패 {fail_count}회)")
+        limit = 0
 else:
     limit = 0
-    st.sidebar.warning("유효하지 않은 코드입니다.")
-#=============================================
-
+    
+#================================================
 # 사이드바 이미지 생성 옵션
 st.sidebar.title("AI 이미지 생성 옵션")
 sizes = [
-    ("정사각형 1:1 (1024x1024)", "1024x1024"),
+    ("1:1비율(1024x1024)", "1024x1024"),
     ("세로형(1024x1792)", "1024x1792"),
     ("가로형(1792x1024)", "1792x1024")
 ]
@@ -87,65 +141,6 @@ st.write("한글로 원하는 그림 설명하면 프롬프트로 완성해주�
 user_kor_prompt = st.text_area("원하는 이미지를 한글로 설명해 주세요.", height=80)
 st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
-
-# 스타일 레퍼런스 선택
-st.subheader("이미지 스타일 레퍼런스 선택")
-styles = [
-    "자동(Auto, best fit)",    # GPT가 알아서 생성하도록(기본)
-    "사진(Real photo)",
-    "디즈니 스타일(Disney style cartoon)",
-    "픽사 3D 스타일(Pixar 3D animation)",
-    "드림웍스 스타일(Dreamworks style)",
-    "일본풍 애니메이션(Japanese anime)",
-    "수채화(Watercolor painting)",
-    "유화(Oil painting)",
-    "연필 드로잉(Pencil sketch)",
-    "픽토그램(Flat pictogram icon)",
-    "미니멀리즘(Minimalist flat design)",
-    "아트포스터(Vintage art poster)",
-    "반 고흐(Vincent van Gogh style)",
-    "에드워드 호퍼(Edward Hopper style)",
-    "앤디 워홀(Andy Warhol pop art)",
-    "구스타프 클림트(Gustav Klimt style)",
-    "무하(Alphonse Mucha Art Nouveau)",
-    "헤이즐 블룸(Hazel Bloom digital art)"
-]
-style_mapping = {
-    "자동(Auto, best fit)": "",
-    "사진(Real photo)": "in the style of a real photo",
-    "디즈니 스타일(Disney style cartoon)": "in Disney cartoon style",
-    "픽사 3D 스타일(Pixar 3D animation)": "in Pixar 3D animation style",
-    "드림웍스 스타일(Dreamworks style)": "in Dreamworks animation style",
-    "일본풍 애니메이션(Japanese anime)": "in Japanese anime style",
-    "수채화(Watercolor painting)": "in watercolor painting style",
-    "유화(Oil painting)": "in oil painting style",
-    "연필 드로잉(Pencil sketch)": "as a pencil sketch",
-    "픽토그램(Flat pictogram icon)": "as a flat pictogram icon",
-    "미니멀리즘(Minimalist flat design)": "in minimalist flat design",
-    "아트포스터(Vintage art poster)": "in vintage art poster style",
-    "반 고흐(Vincent van Gogh style)": "in the style of Vincent van Gogh",
-    "에드워드 호퍼(Edward Hopper style)": "in the style of Edward Hopper",
-    "앤디 워홀(Andy Warhol pop art)": "in Andy Warhol pop art style",
-    "구스타프 클림트(Gustav Klimt style)": "in the style of Gustav Klimt",
-    "무하(Alphonse Mucha Art Nouveau)": "in Alphonse Mucha Art Nouveau style",
-    "헤이즐 블룸(Hazel Bloom digital art)": "in Hazel Bloom digital illustration style"
-}
-selected_style = st.selectbox(
-    "이미지 스타일/작가 레퍼런스 선택",
-    styles,
-    index=0  # "자동"이 기본 선택
-)
-#================================================================================
-# 이미지 규격/비율(DALLE-3 공식 지원)
-sizes = [
-    ("정사각형 1:1 (1024x1024)", "1024x1024"),
-    ("세로형(1024x1792)", "1024x1792"),
-    ("가로형(1792x1024)", "1792x1024")
-]
-selected_size_label = st.selectbox(
-    "이미지 비율/사이즈 선택", [x[0] for x in sizes]
-)
-selected_size = [x[1] for x in sizes if x[0] == selected_size_label][0]
 #==================================================================================
 
 # 1차 프롬프트 자동 생성: 한글/영문 둘 다 풍성하게, 코드블럭 표시
@@ -233,7 +228,7 @@ if st.session_state.get('eng_prompt'):
 # ======= 이미지 생성 버튼(한도체크) =======
 if st.button("이미지 생성"):
     # ---- 한도 체크 ----
-    if user_code not in user_limits or limit == 0:
+    if limit == 0:
         st.error("등록되지 않은 이용자 코드입니다!")
     elif limit > 0 and st.session_state["used_count"] + num_images > limit:
         st.error(f"생성 가능 횟수({limit}장)를 모두 사용하셨습니다.")
