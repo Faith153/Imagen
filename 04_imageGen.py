@@ -5,29 +5,8 @@ st.title("AI 이미지 생성기 GPT-Dall-e-3")
 st.write("한글로 원하는 그림 설명하면 프롬프트로 완성해주고, 최종 이미지를 생성합니다")
 
 # API KEY 입력
-api_label = "OpenAI API KEY 입력"
-if openai_api_key:
-    api_label += " <span style='color:#27ae60;font-size:22px;vertical-align:middle;'>&#10004;</span>"
-
-st.sidebar.markdown(api_label, unsafe_allow_html=True)
-openai_api_key = st.sidebar.text_input(
-    label="",  # label은 비우고
-    key="openai_api_key",
-    type="password",
-    help="OpenAI API 키를 입력하세요."
-)
-
-# **여기서 label에 HTML을 넣어야 하므로 markdown 사용**
-st.sidebar.markdown(
-    """
-    <style>
-    section[data-testid="stSidebar"] label[for="openai_api_key"] > div {
-        display: flex; align-items: center;
-        gap: 8px;
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
+st.sidebar.title("API KEY 입력")
+openai_api_key = st.sidebar.text_input("OpenAI API KEY 입력", type="password")
 
 if not openai_api_key:
     st.sidebar.warning("OpenAI API KEY 입력 필수.")
