@@ -3,7 +3,11 @@ from openai import OpenAI
 import re
 import requests
 
-# 1. 사이드바 항상 열림 효과
+# API KEY from Streamlit TOML
+API_KEY = st.secrets['openai']['API_KEY']
+client = OpenAI(api_key=API_KEY)
+
+#사이드바 항상 열림
 st.markdown("""
     <style>
     [data-testid="stSidebar"][aria-expanded="false"] {
@@ -15,14 +19,47 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. 사이드바에 옵션 집중
-st.sidebar.title("AI 이미지 생성 옵션")
-openai_api_key = st.sidebar.text_input("OpenAI API KEY 입력", type="password")
-if not openai_api_key:
-    st.sidebar.warning("API KEY 입력 필수.")
-    st.stop()
-client = OpenAI(api_key=openai_api_key)
+#========이용자코드&한도설정============
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"][aria-expanded="false"] {
+        min-width: 340px;
+        max-width: 340px;
+        width: 340px;
+        transition: all 0.3s;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
+# 3. --- [이용자 코드] & [한도 설정] ---
+user_code = st.sidebar.text_input("이용자 코드 입력", max_chars=16)
+
+# 코드별 생성 한도 (코드/장수)
+user_limits = {
+    "0316": 6,
+    "faith": 50,
+    "aledma": -1  # 무제한
+}
+
+# 세션 사용량 관리(코드 바뀌면 초기화)
+if "used_count" not in st.session_state or st.session_state.get("last_user_code") != user_code:
+    st.session_state["used_count"] = 0
+    st.session_state["last_user_code"] = user_code
+
+# 한도 로딩
+if user_code in user_limits:
+    limit = user_limits[user_code]
+    if limit > 0:
+        st.sidebar.info(f"사용 가능 이미지: {limit - st.session_state['used_count']}장 남음")
+    elif limit == -1:
+        st.sidebar.info("무제한(관리자 코드)")
+else:
+    limit = 0
+    st.sidebar.warning("유효하지 않은 코드입니다.")
+#=============================================
+
+# 사이드바 이미지 생성 옵션
+st.sidebar.title("AI 이미지 생성 옵션")
 sizes = [
     ("정사각형 1:1 (1024x1024)", "1024x1024"),
     ("세로형(1024x1792)", "1024x1792"),
@@ -43,7 +80,7 @@ styles = [
 selected_style = st.sidebar.selectbox("스타일/작가 레퍼런스", styles, index=0)
 num_images = st.sidebar.radio("이미지 생성 개수", [1, 2, 3, 4], horizontal=True)
 
-# 3. 메인 - 프롬프트 입력 등 (나머지 코드는 동일하게)
+# 3. 메인 - 프롬프트 입력 등
 st.title("AI 이미지 생성기")
 st.write("한글로 원하는 그림 설명하면 프롬프트로 완성해주고, 최종 이미지 생성")
 
@@ -54,7 +91,7 @@ st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 # 스타일 레퍼런스 선택
 st.subheader("이미지 스타일 레퍼런스 선택")
 styles = [
-    "자동(Auto, best fit)",    # 프롬프트 해석에 맡김(기본)
+    "자동(Auto, best fit)",    # GPT가 알아서 생성하도록(기본)
     "사진(Real photo)",
     "디즈니 스타일(Disney style cartoon)",
     "픽사 3D 스타일(Pixar 3D animation)",
@@ -193,15 +230,18 @@ if st.session_state.get('eng_prompt'):
                 st.session_state['eng_prompt'] = re_eng_match.group(1).strip()
             st.session_state['kor_desc'] = kor_prompt_update
 
-# ======= 이미지 생성 버튼 =======
+# ======= 이미지 생성 버튼(한도체크) =======
 if st.button("이미지 생성"):
-    if not st.session_state.get('eng_prompt'):
-        st.warning("먼저 프롬프트를 완성해 주세요!")
+    # ---- 한도 체크 ----
+    if user_code not in user_limits or limit == 0:
+        st.error("등록되지 않은 이용자 코드입니다!")
+    elif limit > 0 and st.session_state["used_count"] + num_images > limit:
+        st.error(f"생성 가능 횟수({limit}장)를 모두 사용하셨습니다.")
     else:
         with st.spinner("이미지를 생성 중입니다..."):
             try:
                 response = client.images.generate(
-                    prompt=st.session_state['eng_prompt'],
+                    prompt=st.session_state.get('eng_prompt', user_kor_prompt),
                     model="dall-e-3",
                     n=num_images,
                     size=selected_size
@@ -217,5 +257,9 @@ if st.button("이미지 생성"):
                         mime="image/png",
                         key=f"download_{idx}"
                     )
+                # ---- 사용횟수 업데이트 ----
+                if limit > 0:
+                    st.session_state["used_count"] += num_images
+                    st.success(f"총 {st.session_state['used_count']} / {limit}장 사용")
             except Exception as e:
                 st.error(f"이미지 생성 중 오류가 발생했습니다: {e}")
