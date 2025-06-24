@@ -235,13 +235,16 @@ if st.button("이미지 생성"):
     else:
         with st.spinner("이미지를 생성 중입니다..."):
             try:
-                response = client.images.generate(
-                    prompt=st.session_state.get('eng_prompt', user_kor_prompt),
-                    model="dall-e-3",
-                    n=num_images,
-                    size=selected_size
-                )
-                image_urls = [img.url for img in response.data]
+                image_urls = []
+                for _ in range(num_images):   # num_images만큼 반복 호출
+                    resp = client.images.generate(
+                        prompt=st.session_state.get('eng_prompt', user_kor_prompt),
+                        model="dall-e-3",
+                        n=1,                     # ← 반드시 1로 고정
+                        size=selected_size
+                    )
+                    image_urls.append(resp.data[0].url)
+
                 for idx, image_url in enumerate(image_urls):
                     st.image(image_url, caption=f"이미지 {idx+1}", use_container_width=True)
                     img_data = requests.get(image_url).content
@@ -252,6 +255,7 @@ if st.button("이미지 생성"):
                         mime="image/png",
                         key=f"download_{idx}"
                     )
+                    
                 # ---- 사용횟수 업데이트 ----
                 if limit > 0:
                     st.session_state["used_count"] += num_images
