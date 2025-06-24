@@ -10,6 +10,10 @@ import json
 API_KEY = st.secrets['openai']['API_KEY']
 client = OpenAI(api_key=API_KEY)
 
+# 누적된 이미지를 저장할 리스트
+if "all_images" not in st.session_state:
+    st.session_state["all_images"] = []
+
 # -----------------------------------------------------------
 # 사이드바 항상 열림 (UI/UX 개선용)
 st.markdown("""
@@ -132,7 +136,6 @@ styles = [
     "헤이즐 블룸(Hazel Bloom digital art)"
 ]
 selected_style = st.sidebar.selectbox("스타일/작가 레퍼런스", styles, index=0)
-num_images = st.sidebar.radio("이미지 생성 개수", [1, 2, 3, 4], horizontal=True)
 
 # 3. 메인 - 프롬프트 입력 등
 st.title("AI 이미지 생성기")
@@ -226,6 +229,13 @@ if st.session_state.get('eng_prompt'):
             st.session_state['kor_desc'] = kor_prompt_update
 
 # ======= 이미지 생성 버튼(한도체크) =======
+#  이미지 생성 개수 선택 (메인에서 결정)
+num_images = st.radio(
+    "이미지 생성 개수",
+    [1, 2, 3, 4],
+    index=0,
+    horizontal=True
+    )
 if st.button("이미지 생성"):
     # ---- 한도 체크 ----
     if limit == 0:
@@ -244,10 +254,20 @@ if st.button("이미지 생성"):
                         size=selected_size
                     )
                     image_urls.append(resp.data[0].url)
+                for _ in range(num_images):
+                    resp = client.images.generate(
+                        prompt=st.session_state.get('eng_prompt', user_kor_prompt),
+                        model="dall-e-3",
+                        n=1,
+                        size=selected_size
+                    )
+                    url = resp.data[0].url
+                    # 세션리스트에 누적 저장 (url + 설명)
+                    st.session_state["all_images"].append({
+                        "url": url,
+                        "caption": user_kor_prompt  # 간단 요약엔 한글 입력문을 사용
+                    })
 
-                for idx, image_url in enumerate(image_urls):
-                    st.image(image_url, caption=f"이미지 {idx+1}", use_container_width=True)
-                    img_data = requests.get(image_url).content
                     st.download_button(
                         label="이미지 다운로드",
                         data=img_data,
@@ -262,3 +282,22 @@ if st.button("이미지 생성"):
                     st.success(f"총 {st.session_state['used_count']} / {limit}장 사용")
             except Exception as e:
                 st.error(f"이미지 생성 중 오류가 발생했습니다: {e}")
+
+# ────────── 누적된 이미지 모두 그리드로 표시 ──────────
+if st.session_state["all_images"]:
+    st.markdown("## 생성된 이미지")
+    imgs = st.session_state["all_images"]
+    n = len(imgs)
+    # 1장: 1열, 2~3장: n열, 4장 이상: 2열
+    cols_per_row = 1 if n==1 else (n if n<=3 else 2)
+    for i in range(0, n, cols_per_row):
+        row = st.columns(cols_per_row)
+        for j, col in enumerate(row):
+            idx = i + j
+            if idx < n:
+                item = imgs[idx]
+                col.image(
+                    item["url"],
+                    caption=f"이미지{idx+1} : {item['caption']}",
+                    use_container_width=True
+                )
