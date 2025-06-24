@@ -1,22 +1,55 @@
-import streamlit as st 
+import streamlit as st
 from openai import OpenAI
+import re
+import requests
 
+# 1. 사이드바 항상 열림 효과
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"][aria-expanded="false"] {
+        min-width: 340px;
+        max-width: 340px;
+        width: 340px;
+        transition: all 0.3s;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 2. 사이드바에 옵션 집중
+st.sidebar.title("AI 이미지 생성 옵션")
+openai_api_key = st.sidebar.text_input("OpenAI API KEY 입력", type="password")
+if not openai_api_key:
+    st.sidebar.warning("API KEY 입력 필수.")
+    st.stop()
+client = OpenAI(api_key=openai_api_key)
+
+sizes = [
+    ("정사각형 1:1 (1024x1024)", "1024x1024"),
+    ("세로형(1024x1792)", "1024x1792"),
+    ("가로형(1792x1024)", "1792x1024")
+]
+selected_size_label = st.sidebar.selectbox("이미지 비율/사이즈", [x[0] for x in sizes])
+selected_size = [x[1] for x in sizes if x[0] == selected_size_label][0]
+
+styles = [
+    "자동(Auto, best fit)", "사진(Real photo)", "디즈니 스타일(Disney style cartoon)",
+    "픽사 3D 스타일(Pixar 3D animation)", "드림웍스 스타일(Dreamworks style)",
+    "일본풍 애니메이션(Japanese anime)", "수채화(Watercolor painting)", "유화(Oil painting)",
+    "연필 드로잉(Pencil sketch)", "픽토그램(Flat pictogram icon)", "미니멀리즘(Minimalist flat design)",
+    "아트포스터(Vintage art poster)", "반 고흐(Vincent van Gogh style)", "에드워드 호퍼(Edward Hopper style)",
+    "앤디 워홀(Andy Warhol pop art)", "구스타프 클림트(Gustav Klimt style)", "무하(Alphonse Mucha Art Nouveau)",
+    "헤이즐 블룸(Hazel Bloom digital art)"
+]
+selected_style = st.sidebar.selectbox("스타일/작가 레퍼런스", styles, index=0)
+num_images = st.sidebar.radio("이미지 생성 개수", [1, 2, 3, 4], horizontal=True)
+
+# 3. 메인 - 프롬프트 입력 등 (나머지 코드는 동일하게)
 st.title("AI 이미지 생성기")
 st.write("한글로 원하는 그림 설명하면 프롬프트로 완성해주고, 최종 이미지 생성")
 
-# API KEY 입력
-st.sidebar.title("API KEY 입력")
-openai_api_key = st.sidebar.text_input("OpenAI API KEY 입력", type="password")
-
-if not openai_api_key:
-    st.sidebar.warning("OpenAI API KEY 입력 필수.")
-    st.stop()
-    
-# OpenAI 클라이언트 설정
-client = OpenAI(api_key=openai_api_key)
-
-# 한글 프롬프트 입력
 user_kor_prompt = st.text_area("원하는 이미지를 한글로 설명해 주세요.", height=80)
+st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+
 
 # 스타일 레퍼런스 선택
 st.subheader("이미지 스타일 레퍼런스 선택")
@@ -160,20 +193,29 @@ if st.session_state.get('eng_prompt'):
                 st.session_state['eng_prompt'] = re_eng_match.group(1).strip()
             st.session_state['kor_desc'] = kor_prompt_update
 
-# 이미지 생성 버튼
+# ======= 이미지 생성 버튼 =======
 if st.button("이미지 생성"):
     if not st.session_state.get('eng_prompt'):
-        st.warning("먼저 1차 프롬프트 자동 생성 또는 리프롬프트를 해주세요!")
+        st.warning("먼저 프롬프트를 완성해 주세요!")
     else:
         with st.spinner("이미지를 생성 중입니다..."):
             try:
                 response = client.images.generate(
                     prompt=st.session_state['eng_prompt'],
                     model="dall-e-3",
-                    n=1,
-                    size=selected_size            
+                    n=num_images,
+                    size=selected_size
                 )
-                image_url = response.data[0].url
-                st.image(image_url, caption="생성된 이미지", use_container_width=True)
+                image_urls = [img.url for img in response.data]
+                for idx, image_url in enumerate(image_urls):
+                    st.image(image_url, caption=f"이미지 {idx+1}", use_container_width=True)
+                    img_data = requests.get(image_url).content
+                    st.download_button(
+                        label="이미지 다운로드",
+                        data=img_data,
+                        file_name=f"ai_image_{idx+1}.png",
+                        mime="image/png",
+                        key=f"download_{idx}"
+                    )
             except Exception as e:
                 st.error(f"이미지 생성 중 오류가 발생했습니다: {e}")
