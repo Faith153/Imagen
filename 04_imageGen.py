@@ -15,7 +15,7 @@ st.set_page_config(
     page_title="AI 이미지 생성기",
     page_icon="🎨",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed"  # 사이드바 완전 숨김
 )
 
 # 커스텀 CSS 스타일
@@ -31,13 +31,52 @@ st.markdown("""
     
     /* 전체 컨테이너 오버플로우 방지 */
     .stApp {
-        overflow-x: hidden;
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+    
+    /* 메인 컨테이너 강제 제한 */
+    .main .block-container {
+        max-width: 100% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        overflow-x: hidden !important;
     }
     
     /* 모든 요소 최대 너비 제한 */
     * {
-        max-width: 100%;
-        box-sizing: border-box;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* 코드 블록 완전 반응형 처리 */
+    .stCodeBlock, 
+    .stCodeBlock > div,
+    .stCodeBlock pre,
+    .stCodeBlock code {
+        max-width: 100% !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        word-break: break-all !important;
+    }
+    
+    /* 텍스트 영역 반응형 */
+    .stTextArea textarea {
+        max-width: 100% !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* 프롬프트 표시 영역 완전 제한 */
+    .prompt-display,
+    .prompt-display * {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
     }
     
     /* 헤더 스타일 */
@@ -130,27 +169,44 @@ st.markdown("""
         transform: translateY(-5px);
     }
     
-    /* 사이드바 스타일 - 자연스럽게 개선 */
+    /* 사이드바 완전 숨김 */
     [data-testid="stSidebar"] {
-        background-color: #262730;
+        display: none !important;
     }
     
-    /* 사이드바 텍스트 가독성 개선 */
-    [data-testid="stSidebar"] .stMarkdown h3 {
-        color: #ffffff !important;
+    /* 메인 컨테이너 전체 너비 사용 */
+    .main .block-container {
+        max-width: 100% !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
     }
     
-    [data-testid="stSidebar"] .stTextInput label {
-        color: #ffffff !important;
+    /* 코드 입력 카드 스타일 */
+    .code-input-card {
+        background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 2px solid #28a745;
+        margin-bottom: 2rem;
+        text-align: center;
     }
     
-    [data-testid="stSidebar"] .stCheckbox label {
-        color: #ffffff !important;
+    .code-remaining-card {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 2px solid #2196f3;
+        margin-bottom: 2rem;
+        text-align: center;
     }
     
-    /* 상태 메시지 텍스트 개선 */
-    [data-testid="stSidebar"] div[style*="background"] {
-        color: #000000 !important;
+    .code-expired-card {
+        background: linear-gradient(135deg, #fff3e0 0%, #fff8f0 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 2px solid #ff9800;
+        margin-bottom: 2rem;
+        text-align: center;
     }
     
     /* 상태 표시 스타일 */
@@ -423,50 +479,107 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 사이드바 - 이용자 코드만
-with st.sidebar:
-    st.markdown("### 🔐 이용자 인증")
-    
-    # 디버그 정보 (개발 중에만 사용)
-    if st.checkbox("디버그 모드", value=False):
-        try:
-            available_codes = list(st.secrets.get("user_codes", {}).keys())
-            st.write(f"등록된 코드 수: {len(available_codes)}")
-            st.write("등록된 코드들:", available_codes)
-        except Exception as e:
-            st.error(f"Secrets 파일 읽기 오류: {e}")
-    
-    # 보안 강화된 코드 입력 (자동완성 방지)
-    user_code = st.text_input(
-        "이용자 코드",
-        max_chars=16,
-        type="password",  # 패스워드 타입으로 변경하여 자동완성 방지
-        help="제공받은 이용자 코드를 입력하세요",
-        key="user_code_input"
-    )
-    
-    # 접근 권한 확인
-    is_valid, limit, error_msg = check_user_access(user_code)
-    
-    if error_msg:
-        if "제한" in error_msg:
-            st.markdown(f'<div style="background: #f8d7da; padding: 1rem; border-radius: 8px; border-left: 4px solid #dc3545; margin-bottom: 1rem; color: #721c24 !important;"><strong>⚠️ {error_msg}</strong></div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 1rem; color: #856404 !important;"><strong>⚠️ {error_msg}</strong></div>', unsafe_allow_html=True)
-    elif is_valid:
-        if limit == -1:
-            st.markdown('<div style="background: #d4edda; padding: 1rem; border-radius: 8px; border-left: 4px solid #28a745; margin-bottom: 1rem; color: #155724 !important;"><strong>✅ 무제한 코드</strong></div>', unsafe_allow_html=True)
-        else:
-            remaining = limit - st.session_state.used_count
-            st.markdown(f'<div style="background: #d4edda; padding: 1rem; border-radius: 8px; border-left: 4px solid #28a745; margin-bottom: 1rem; color: #155724 !important;"><strong>✅ 사용 가능: {remaining}장 남음</strong></div>', unsafe_allow_html=True)
-    
-    # 코드가 변경되면 사용량 초기화
-    if st.session_state.last_user_code != user_code:
-        st.session_state.used_count = 0
-        st.session_state.last_user_code = user_code
+# 이용자 코드 입력 및 상태 표시 섹션
+user_code = ""
+is_valid = False
+limit = 0
+remaining = 0
 
-# 메인 콘텐츠
-if is_valid:
+# 세션 상태 초기화
+if "user_authenticated" not in st.session_state:
+    st.session_state.user_authenticated = False
+if "current_user_code" not in st.session_state:
+    st.session_state.current_user_code = ""
+
+# 현재 인증 상태 확인
+if st.session_state.user_authenticated:
+    is_valid, limit, error_msg = check_user_access(st.session_state.current_user_code)
+    if not is_valid and "제한" not in error_msg:
+        # 코드가 무효화됨 (횟수 소진)
+        st.session_state.user_authenticated = False
+        st.session_state.current_user_code = ""
+
+if not st.session_state.user_authenticated:
+    # 코드 입력 카드
+    st.markdown('<div class="code-input-card">', unsafe_allow_html=True)
+    st.markdown("### 🔐 이용자 코드 입력")
+    st.markdown("**서비스 이용을 위해 제공받은 이용자 코드를 입력하세요**")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        input_code = st.text_input(
+            "이용자 코드",
+            max_chars=16,
+            type="password",
+            placeholder="이용자 코드를 입력하세요",
+            label_visibility="collapsed"
+        )
+        
+        if st.button("코드 확인", use_container_width=True):
+            if input_code:
+                is_valid, limit, error_msg = check_user_access(input_code)
+                if is_valid:
+                    st.session_state.user_authenticated = True
+                    st.session_state.current_user_code = input_code
+                    st.session_state.used_count = 0  # 사용량 초기화
+                    st.experimental_rerun()
+                else:
+                    st.error(error_msg)
+            else:
+                st.warning("코드를 입력해주세요.")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # 안내 메시지
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown("### 📋 이용 안내")
+    st.markdown("""
+    - 제공받은 이용자 코드를 입력하시면 AI 이미지 생성 서비스를 이용하실 수 있습니다
+    - 코드별로 생성 가능한 이미지 수가 정해져 있습니다
+    - 생성된 이미지는 바로 다운로드 받으실 수 있습니다
+    """)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+else:
+    # 인증된 상태 - 남은 횟수 표시
+    is_valid, limit, error_msg = check_user_access(st.session_state.current_user_code)
+    remaining = limit - st.session_state.used_count if limit > 0 else -1
+    
+    if remaining == 0 and limit > 0:
+        # 횟수 소진 - 새 코드 입력 요청
+        st.markdown('<div class="code-expired-card">', unsafe_allow_html=True)
+        st.markdown("### ⚠️ 사용 횟수 소진")
+        st.markdown("**모든 이미지 생성 횟수를 사용하셨습니다. 새로운 코드를 입력해주세요.**")
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("새 코드 입력", use_container_width=True):
+                st.session_state.user_authenticated = False
+                st.session_state.current_user_code = ""
+                st.experimental_rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        # 정상 상태 - 남은 횟수 표시
+        st.markdown('<div class="code-remaining-card">', unsafe_allow_html=True)
+        if limit == -1:
+            st.markdown("### ✅ 무제한 이용 가능")
+            st.markdown("**무제한 코드로 이미지를 자유롭게 생성하세요!**")
+        else:
+            st.markdown(f"### ✅ 남은 이미지 생성 횟수: {remaining}장")
+            st.markdown(f"**현재 {st.session_state.used_count}장 사용 / 총 {limit}장 가능**")
+        
+        col1, col2, col3 = st.columns([2, 1, 2])
+        with col2:
+            if st.button("코드 변경", use_container_width=True):
+                st.session_state.user_authenticated = False
+                st.session_state.current_user_code = ""
+                st.experimental_rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# 메인 콘텐츠 - 인증된 경우만 표시
+if st.session_state.user_authenticated and remaining != 0:
     # 입력 섹션
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("### 📝 이미지 설명 입력")
@@ -558,9 +671,28 @@ if is_valid:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### 🤖 생성된 프롬프트")
         
-        st.markdown('<div class="prompt-display">', unsafe_allow_html=True)
+        # 프롬프트를 안전한 컨테이너로 감싸기
+        st.markdown('<div style="max-width: 100%; overflow-x: auto; word-wrap: break-word;">', unsafe_allow_html=True)
         st.markdown("**영어 프롬프트:**")
-        st.code(st.session_state.eng_prompt, language='text')
+        
+        # 긴 프롬프트를 안전하게 표시
+        prompt_text = st.session_state.eng_prompt
+        if len(prompt_text) > 200:
+            # 너무 긴 경우 줄바꿈 강제 삽입
+            formatted_prompt = ""
+            words = prompt_text.split()
+            line_length = 0
+            for word in words:
+                if line_length + len(word) > 80:  # 80자마다 줄바꿈
+                    formatted_prompt += "\n" + word + " "
+                    line_length = len(word)
+                else:
+                    formatted_prompt += word + " "
+                    line_length += len(word) + 1
+            st.code(formatted_prompt.strip(), language='text')
+        else:
+            st.code(prompt_text, language='text')
+        
         st.markdown('</div>', unsafe_allow_html=True)
         
         with st.expander("프롬프트 설명 및 수정"):
@@ -610,7 +742,7 @@ if is_valid:
         with col2:
             if st.button("🎨 이미지 생성", use_container_width=True):
                 if limit > 0 and st.session_state.used_count + num_images > limit:
-                    st.error(f"생성 가능 횟수를 초과합니다. (현재: {st.session_state.used_count}/{limit})")
+                    st.error(f"생성 가능 횟수를 초과합니다. (현재: {st.session_state.used_count}/{limit if limit > 0 else '무제한'})")
                 else:
                     with st.spinner(f"{num_images}장의 이미지를 생성 중입니다..."):
                         images = generate_images(st.session_state.eng_prompt, selected_size, num_images)
@@ -625,6 +757,12 @@ if is_valid:
                             st.session_state.used_count += num_images
                         
                         st.success(f"{len(images)}장의 이미지가 생성되었습니다!")
+                        
+                        # 횟수 소진 시 자동 상태 변경
+                        if limit > 0 and st.session_state.used_count >= limit:
+                            st.info("모든 이미지 생성 횟수를 사용하셨습니다.")
+                            time.sleep(2)
+                            st.experimental_rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
     
