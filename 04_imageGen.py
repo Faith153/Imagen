@@ -118,68 +118,27 @@ st.markdown("""
         transform: translateY(-5px);
     }
     
-    /* 사이드바 스타일 */
-    .sidebar .element-container {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 10px;
-        margin-bottom: 1rem;
-    }
-    
-    /* 사이드바 전체 배경 강제 설정 */
-    .css-1d391kg,
+    /* 사이드바 스타일 - 자연스럽게 개선 */
     [data-testid="stSidebar"] {
-        background-color: #ffffff !important;
+        background-color: #262730;
     }
     
-    /* 사이드바 내부 컨테이너 */
-    [data-testid="stSidebar"] > div {
-        background-color: #ffffff !important;
+    /* 사이드바 텍스트 가독성 개선 */
+    [data-testid="stSidebar"] .stMarkdown h3 {
+        color: #ffffff !important;
     }
     
-    /* 사이드바 모든 텍스트 색상 강제 설정 */
-    [data-testid="stSidebar"] .stMarkdown, 
-    [data-testid="stSidebar"] .stText,
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] div,
-    [data-testid="stSidebar"] span {
-        color: #333333 !important;
+    [data-testid="stSidebar"] .stTextInput label {
+        color: #ffffff !important;
     }
     
-    /* 사이드바 헤더 스타일 */
-    [data-testid="stSidebar"] h3 {
-        color: #2c3e50 !important;
-        font-weight: 600;
-        margin-bottom: 1rem;
+    [data-testid="stSidebar"] .stCheckbox label {
+        color: #ffffff !important;
     }
     
-    /* 사이드바 입력 필드 스타일 */
-    [data-testid="stSidebar"] .stTextInput > div > div > input {
-        background-color: #ffffff !important;
-        color: #333333 !important;
-        border: 2px solid #e9ecef !important;
-        border-radius: 8px;
-    }
-    
-    /* 사이드바 입력 필드 라벨 */
-    [data-testid="stSidebar"] .stTextInput > label {
-        color: #495057 !important;
-        font-weight: 500;
-    }
-    
-    /* 사이드바 체크박스 */
-    [data-testid="stSidebar"] .stCheckbox > label {
-        color: #495057 !important;
-    }
-    
-    /* 사이드바 도움말 텍스트 */
-    [data-testid="stSidebar"] .stTextInput > div > div > div {
-        color: #6c757d !important;
-    }
-    
-    /* 사이드바 체크박스 텍스트 */
-    [data-testid="stSidebar"] .stCheckbox label span {
-        color: #495057 !important;
+    /* 상태 메시지 텍스트 개선 */
+    [data-testid="stSidebar"] div[style*="background"] {
+        color: #000000 !important;
     }
     
     /* 상태 표시 스타일 */
