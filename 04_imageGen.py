@@ -479,7 +479,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 이용자 코드 입력 및 상태 표시 섹션
+# 이용자 코드 입력 및 상태 표시 섹션 (간소화)
 user_code = ""
 is_valid = False
 limit = 0
@@ -500,83 +500,63 @@ if st.session_state.user_authenticated:
         st.session_state.current_user_code = ""
 
 if not st.session_state.user_authenticated:
-    # 코드 입력 카드
-    st.markdown('<div class="code-input-card">', unsafe_allow_html=True)
-    st.markdown("### 🔐 이용자 코드 입력")
-    st.markdown("**서비스 이용을 위해 제공받은 이용자 코드를 입력하세요**")
-    
+    # 간단한 코드 입력 영역
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
+        st.markdown("### 🔐 이용자 코드를 입력하세요")
         input_code = st.text_input(
             "이용자 코드",
             max_chars=16,
             type="password",
-            placeholder="이용자 코드를 입력하세요",
+            placeholder="이용자 코드 입력",
             label_visibility="collapsed"
         )
         
-        if st.button("코드 확인", use_container_width=True):
-            if input_code:
-                is_valid, limit, error_msg = check_user_access(input_code)
-                if is_valid:
-                    st.session_state.user_authenticated = True
-                    st.session_state.current_user_code = input_code
-                    st.session_state.used_count = 0  # 사용량 초기화
-                    st.experimental_rerun()
+        col_a, col_b = st.columns(2)
+        with col_a:
+            if st.button("코드 확인", use_container_width=True):
+                if input_code:
+                    is_valid, limit, error_msg = check_user_access(input_code)
+                    if is_valid:
+                        st.session_state.user_authenticated = True
+                        st.session_state.current_user_code = input_code
+                        st.session_state.used_count = 0
+                        st.experimental_rerun()
+                    else:
+                        st.error(error_msg)
                 else:
-                    st.error(error_msg)
-            else:
-                st.warning("코드를 입력해주세요.")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # 안내 메시지
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("### 📋 이용 안내")
-    st.markdown("""
-    - 제공받은 이용자 코드를 입력하시면 AI 이미지 생성 서비스를 이용하실 수 있습니다
-    - 코드별로 생성 가능한 이미지 수가 정해져 있습니다
-    - 생성된 이미지는 바로 다운로드 받으실 수 있습니다
-    """)
-    st.markdown('</div>', unsafe_allow_html=True)
+                    st.warning("코드를 입력해주세요.")
+        
+        with col_b:
+            st.markdown("")  # 빈 공간
 
 else:
-    # 인증된 상태 - 남은 횟수 표시
+    # 인증된 상태 - 상단에 간단한 상태 표시
     is_valid, limit, error_msg = check_user_access(st.session_state.current_user_code)
     remaining = limit - st.session_state.used_count if limit > 0 else -1
     
     if remaining == 0 and limit > 0:
-        # 횟수 소진 - 새 코드 입력 요청
-        st.markdown('<div class="code-expired-card">', unsafe_allow_html=True)
-        st.markdown("### ⚠️ 사용 횟수 소진")
-        st.markdown("**모든 이미지 생성 횟수를 사용하셨습니다. 새로운 코드를 입력해주세요.**")
-        
+        # 횟수 소진
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
+            st.error("⚠️ 모든 횟수를 사용했습니다. 새 코드를 입력해주세요.")
             if st.button("새 코드 입력", use_container_width=True):
                 st.session_state.user_authenticated = False
                 st.session_state.current_user_code = ""
                 st.experimental_rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
     else:
-        # 정상 상태 - 남은 횟수 표시
-        st.markdown('<div class="code-remaining-card">', unsafe_allow_html=True)
-        if limit == -1:
-            st.markdown("### ✅ 무제한 이용 가능")
-            st.markdown("**무제한 코드로 이미지를 자유롭게 생성하세요!**")
-        else:
-            st.markdown(f"### ✅ 남은 이미지 생성 횟수: {remaining}장")
-            st.markdown(f"**현재 {st.session_state.used_count}장 사용 / 총 {limit}장 가능**")
-        
+        # 정상 상태 - 매우 간단한 상태 표시
         col1, col2, col3 = st.columns([2, 1, 2])
-        with col2:
+        with col1:
+            if limit == -1:
+                st.success("✅ 무제한 이용 가능")
+            else:
+                st.info(f"✅ 남은 횟수: {remaining}장")
+        with col3:
             if st.button("코드 변경", use_container_width=True):
                 st.session_state.user_authenticated = False
                 st.session_state.current_user_code = ""
                 st.experimental_rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
 
 # 메인 콘텐츠 - 인증된 경우만 표시
 if st.session_state.user_authenticated and remaining != 0:
