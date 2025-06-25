@@ -110,28 +110,9 @@ st.markdown("""
         border: 1px solid #e0e0e0;
     }
     
-    /* 입력 섹션 스타일 */
-    .input-section {
-        background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 10px;
-        margin-bottom: 1rem;
-    }
+    /* 입력 섹션 스타일 - 제거됨 */
     
-    /* 옵션 그룹 스타일 */
-    .option-group {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .option-item {
-        flex: 1;
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-    }
+    /* 옵션 그룹 스타일 - 제거됨 */
     
     /* 버튼 스타일 */
     .stButton > button {
@@ -181,32 +162,13 @@ st.markdown("""
         padding-right: 2rem !important;
     }
     
-    /* 코드 입력 카드 스타일 */
-    .code-input-card {
-        background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
-        padding: 1.5rem;
-        border-radius: 15px;
-        border: 2px solid #28a745;
-        margin-bottom: 2rem;
+    /* 코드 입력 관련 스타일 - 간소화된 버전만 유지 */
+    .simple-status {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
         text-align: center;
-    }
-    
-    .code-remaining-card {
-        background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%);
-        padding: 1.5rem;
-        border-radius: 15px;
-        border: 2px solid #2196f3;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    
-    .code-expired-card {
-        background: linear-gradient(135deg, #fff3e0 0%, #fff8f0 100%);
-        padding: 1.5rem;
-        border-radius: 15px;
-        border: 2px solid #ff9800;
-        margin-bottom: 2rem;
-        text-align: center;
+        font-weight: 500;
     }
     
     /* 상태 표시 스타일 */
@@ -512,23 +474,18 @@ if not st.session_state.user_authenticated:
             label_visibility="collapsed"
         )
         
-        col_a, col_b = st.columns(2)
-        with col_a:
-            if st.button("코드 확인", use_container_width=True):
-                if input_code:
-                    is_valid, limit, error_msg = check_user_access(input_code)
-                    if is_valid:
-                        st.session_state.user_authenticated = True
-                        st.session_state.current_user_code = input_code
-                        st.session_state.used_count = 0
-                        st.experimental_rerun()
-                    else:
-                        st.error(error_msg)
+        if st.button("코드 확인", use_container_width=True):
+            if input_code:
+                is_valid, limit, error_msg = check_user_access(input_code)
+                if is_valid:
+                    st.session_state.user_authenticated = True
+                    st.session_state.current_user_code = input_code
+                    st.session_state.used_count = 0
+                    st.experimental_rerun()
                 else:
-                    st.warning("코드를 입력해주세요.")
-        
-        with col_b:
-            st.markdown("")  # 빈 공간
+                    st.error(error_msg)
+            else:
+                st.warning("코드를 입력해주세요.")
 
 else:
     # 인증된 상태 - 상단에 간단한 상태 표시
