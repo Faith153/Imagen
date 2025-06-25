@@ -126,6 +126,62 @@ st.markdown("""
         margin-bottom: 1rem;
     }
     
+    /* 사이드바 전체 배경 강제 설정 */
+    .css-1d391kg,
+    [data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+    }
+    
+    /* 사이드바 내부 컨테이너 */
+    [data-testid="stSidebar"] > div {
+        background-color: #ffffff !important;
+    }
+    
+    /* 사이드바 모든 텍스트 색상 강제 설정 */
+    [data-testid="stSidebar"] .stMarkdown, 
+    [data-testid="stSidebar"] .stText,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] div,
+    [data-testid="stSidebar"] span {
+        color: #333333 !important;
+    }
+    
+    /* 사이드바 헤더 스타일 */
+    [data-testid="stSidebar"] h3 {
+        color: #2c3e50 !important;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    /* 사이드바 입력 필드 스타일 */
+    [data-testid="stSidebar"] .stTextInput > div > div > input {
+        background-color: #ffffff !important;
+        color: #333333 !important;
+        border: 2px solid #e9ecef !important;
+        border-radius: 8px;
+    }
+    
+    /* 사이드바 입력 필드 라벨 */
+    [data-testid="stSidebar"] .stTextInput > label {
+        color: #495057 !important;
+        font-weight: 500;
+    }
+    
+    /* 사이드바 체크박스 */
+    [data-testid="stSidebar"] .stCheckbox > label {
+        color: #495057 !important;
+    }
+    
+    /* 사이드바 도움말 텍스트 */
+    [data-testid="stSidebar"] .stTextInput > div > div > div {
+        color: #6c757d !important;
+    }
+    
+    /* 사이드바 체크박스 텍스트 */
+    [data-testid="stSidebar"] .stCheckbox label span {
+        color: #495057 !important;
+    }
+    
     /* 상태 표시 스타일 */
     .status-info {
         background: #e8f5e8;
@@ -390,15 +446,15 @@ with st.sidebar:
     
     if error_msg:
         if "제한" in error_msg:
-            st.markdown(f'<div class="status-error">{error_msg}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="background: #f8d7da; padding: 1rem; border-radius: 8px; border-left: 4px solid #dc3545; margin-bottom: 1rem; color: #721c24 !important;"><strong>⚠️ {error_msg}</strong></div>', unsafe_allow_html=True)
         else:
-            st.markdown(f'<div class="status-warning">{error_msg}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 1rem; color: #856404 !important;"><strong>⚠️ {error_msg}</strong></div>', unsafe_allow_html=True)
     elif is_valid:
         if limit == -1:
-            st.markdown('<div class="status-info">✅ 무제한 코드</div>', unsafe_allow_html=True)
+            st.markdown('<div style="background: #d4edda; padding: 1rem; border-radius: 8px; border-left: 4px solid #28a745; margin-bottom: 1rem; color: #155724 !important;"><strong>✅ 무제한 코드</strong></div>', unsafe_allow_html=True)
         else:
             remaining = limit - st.session_state.used_count
-            st.markdown(f'<div class="status-info">✅ 사용 가능: {remaining}장 남음</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="background: #d4edda; padding: 1rem; border-radius: 8px; border-left: 4px solid #28a745; margin-bottom: 1rem; color: #155724 !important;"><strong>✅ 사용 가능: {remaining}장 남음</strong></div>', unsafe_allow_html=True)
     
     # 코드가 변경되면 사용량 초기화
     if st.session_state.last_user_code != user_code:
