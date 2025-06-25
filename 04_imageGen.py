@@ -26,6 +26,18 @@ st.markdown("""
         max-width: 1200px;
         margin: 0 auto;
         padding: 2rem;
+        overflow-x: hidden;
+    }
+    
+    /* 전체 컨테이너 오버플로우 방지 */
+    .stApp {
+        overflow-x: hidden;
+    }
+    
+    /* 모든 요소 최대 너비 제한 */
+    * {
+        max-width: 100%;
+        box-sizing: border-box;
     }
     
     /* 헤더 스타일 */
@@ -173,6 +185,39 @@ st.markdown("""
         border-radius: 10px;
         margin: 1rem 0;
         border-left: 4px solid #667eea;
+        overflow-x: auto;
+        max-width: 100%;
+    }
+    
+    /* 코드 블록 반응형 처리 */
+    .prompt-display pre {
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+        overflow-x: auto;
+    }
+    
+    .prompt-display code {
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    
+    /* Streamlit 코드 블록 강제 반응형 */
+    .stCodeBlock {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+    }
+    
+    .stCodeBlock pre {
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
     }
     
     /* 반응형 디자인 */
@@ -657,7 +702,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: #666; padding: 1rem;'>"
-    "© AI 이미지 생성기 by FAITH | OpenAI DALL-E 3"
+    "© AI 이미지 생성기 by FAITH | Powered by OpenAI DALL-E 3"
     "</div>",
     unsafe_allow_html=True
 )
