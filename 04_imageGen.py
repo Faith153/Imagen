@@ -18,221 +18,181 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 세련된 UI CSS
+# UI 스타일 - 참고 이미지와 동일하게
 st.markdown("""
 <style>
-    /* 전체 앱 스타일 초기화 */
+    /* 전체 앱 스타일 */
     .stApp {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f5f5;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     
-    /* 사이드바 완전 숨김 */
+    /* 사이드바 숨김 */
     [data-testid="stSidebar"] {
         display: none !important;
     }
     
     /* 메인 컨테이너 */
     .main .block-container {
-        max-width: 1400px;
-        padding: 2rem;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
+        max-width: 900px;
+        padding: 2rem 1rem;
+        background: white;
+        border-radius: 12px;
         margin: 2rem auto;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
     
-    /* 헤더 스타일 */
+    /* 헤더 */
     .main-header {
-        text-align: center;
-        margin-bottom: 3rem;
-        padding: 2rem;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
         color: white;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .main-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        animation: shimmer 3s ease-in-out infinite;
-    }
-    
-    @keyframes shimmer {
-        0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-        50% { transform: translate(-50%, -50%) rotate(180deg); }
+        padding: 2rem;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 2rem;
     }
     
     .main-header h1 {
-        font-size: 3rem;
+        font-size: 2.5rem;
         font-weight: 700;
-        margin-bottom: 1rem;
-        text-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        position: relative;
-        z-index: 1;
+        margin: 0;
     }
     
     .main-header p {
-        font-size: 1.3rem;
+        font-size: 1.1rem;
+        margin: 0.5rem 0 0 0;
         opacity: 0.9;
-        position: relative;
-        z-index: 1;
     }
     
-    /* 인증 카드 */
-    .auth-card {
-        background: white;
-        padding: 2rem;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    /* 상태 표시 */
+    .status-banner {
+        background: #e8f5e8;
+        border: 1px solid #c3e6c3;
+        border-radius: 8px;
+        padding: 1rem;
         margin-bottom: 2rem;
-        border: 1px solid rgba(102, 126, 234, 0.2);
+        color: #2d5a2d;
+        font-weight: 500;
     }
     
-    /* 상태 표시 카드 */
-    .status-card {
-        background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
-        padding: 1.5rem 2rem;
-        border-radius: 15px;
-        border-left: 5px solid #28a745;
+    .auth-input {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
         margin-bottom: 2rem;
-        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+        text-align: center;
     }
     
-    .status-card.unlimited {
-        background: linear-gradient(135deg, #fff3cd 0%, #fefefe 100%);
-        border-left-color: #ffc107;
-        box-shadow: 0 5px 15px rgba(255, 193, 7, 0.2);
-    }
-    
-    .status-card.expired {
-        background: linear-gradient(135deg, #f8d7da 0%, #fefefe 100%);
-        border-left-color: #dc3545;
-        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.2);
-    }
-    
-    /* 섹션 카드 */
-    .section-card {
-        background: white;
-        padding: 2.5rem;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        margin-bottom: 2rem;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-    
-    .section-title {
-        font-size: 1.5rem;
+    /* 섹션 스타일 */
+    .section-header {
+        font-size: 1.3rem;
         font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: #2c3e50;
+        margin: 2rem 0 1rem 0;
+        color: #333;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
     
-    /* 옵션 그리드 */
-    .option-grid {
+    /* 스타일 그리드 */
+    .style-grid {
         display: grid;
-        gap: 1rem;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.8rem;
         margin-bottom: 2rem;
     }
     
-    .size-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    
-    .style-category-grid {
-        grid-template-columns: repeat(4, 1fr);
-        margin-bottom: 1rem;
-    }
-    
-    .style-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    }
-    
-    .count-grid {
-        grid-template-columns: repeat(4, 1fr);
-        max-width: 400px;
-    }
-    
-    /* 옵션 버튼 */
-    .option-btn {
-        background: #f8f9fa;
+    .style-card {
+        background: white;
         border: 2px solid #e9ecef;
         border-radius: 12px;
         padding: 1rem;
         text-align: center;
         cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 500;
-        color: #495057;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .option-btn:hover {
-        border-color: #667eea;
-        background: #f8f9ff;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-    }
-    
-    .option-btn.selected {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-color: #667eea;
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    }
-    
-    .option-btn.selected::after {
-        content: '✓';
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        font-size: 0.8rem;
-        font-weight: bold;
-    }
-    
-    /* 스타일 카드 특별 디자인 */
-    .style-card {
-        background: white;
-        border: 2px solid #e9ecef;
-        border-radius: 15px;
-        padding: 1.2rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         height: 80px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 0.9rem;
         font-weight: 500;
-        color: #495057;
-        position: relative;
-        overflow: hidden;
+        color: #555;
     }
     
     .style-card:hover {
         border-color: #667eea;
         background: #f8f9ff;
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
     }
     
     .style-card.selected {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border-color: #667eea;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    /* 비율 선택 */
+    .ratio-selector {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .ratio-btn {
+        flex: 1;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.8rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .ratio-btn:hover {
+        background: #e9ecef;
+    }
+    
+    .ratio-btn.selected {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    /* 슬라이더 스타일 */
+    .aspect-slider {
+        margin: 1rem 0;
+    }
+    
+    .stSlider > div > div > div > div {
+        background: #667eea;
+    }
+    
+    /* 이미지 수 선택 */
+    .count-pills {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .count-pill {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        min-width: 50px;
+        text-align: center;
+    }
+    
+    .count-pill.selected {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
     }
     
     /* 버튼 스타일 */
@@ -240,95 +200,57 @@ st.markdown("""
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 0.8rem 2rem;
         font-weight: 600;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        transition: all 0.2s ease;
     }
     
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
     
-    /* 입력 필드 스타일 */
+    /* 텍스트 입력 */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea {
-        border-radius: 12px;
-        border: 2px solid #e9ecef;
-        padding: 1rem;
-        font-size: 1rem;
-        transition: all 0.3s ease;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 0.8rem;
     }
     
     .stTextInput > div > div > input:focus,
     .stTextArea > div > div > textarea:focus {
         border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
     }
     
-    /* 프롬프트 표시 */
-    .prompt-display {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 15px;
-        padding: 1.5rem;
+    /* 고급 옵션 토글 */
+    .advanced-toggle {
+        color: #667eea;
+        cursor: pointer;
+        font-weight: 500;
         margin: 1rem 0;
-        border-left: 4px solid #667eea;
     }
     
     /* 이미지 갤러리 */
     .image-gallery {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
         margin-top: 2rem;
     }
     
-    .image-card {
+    .image-item {
         background: white;
-        border-radius: 15px;
+        border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
     }
     
-    .image-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    /* 선택 상태 표시 */
-    .selection-info {
-        background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%);
-        padding: 1rem 1.5rem;
-        border-radius: 10px;
-        margin-top: 1rem;
-        border-left: 4px solid #2196f3;
-        font-weight: 500;
-        color: #1565c0;
-    }
-    
-    /* 반응형 디자인 */
-    @media (max-width: 768px) {
-        .main .block-container {
-            padding: 1rem;
-            margin: 1rem;
-        }
-        
-        .main-header h1 {
-            font-size: 2rem;
-        }
-        
-        .size-grid,
-        .style-category-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .count-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
+    .image-item:hover {
+        transform: translateY(-2px);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -340,7 +262,7 @@ def init_openai_client():
 
 client = init_openai_client()
 
-# 보안 강화된 세션 관리
+# 보안 강화된 세션 관리 (기존과 동일)
 def get_secure_session_id():
     if 'secure_session_id' not in st.session_state:
         random_str = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
@@ -416,22 +338,26 @@ def check_user_access(user_code):
 
 def generate_prompt(user_input, style):
     style_mapping = {
-        "자동": "Auto, best fit",
-        "사진": "Real photo",
-        "디즈니": "Disney style cartoon",
-        "픽사": "Pixar 3D animation",
-        "드림웍스": "Dreamworks style",
-        "일본애니": "Japanese anime",
-        "수채화": "Watercolor painting",
-        "유화": "Oil painting",
-        "연필드로잉": "Pencil sketch",
-        "픽토그램": "Flat pictogram icon",
-        "미니멀": "Minimalist flat design",
-        "반고흐": "Vincent van Gogh style",
-        "호퍼": "Edward Hopper style",
-        "워홀": "Andy Warhol pop art",
-        "클림트": "Gustav Klimt style",
-        "무하": "Alphonse Mucha Art Nouveau"
+        "기본": "Auto, best fit",
+        "없음": "no style",
+        "사진 콜라주": "photo collage",
+        "사진": "realistic photo",
+        "사이버펑크": "cyberpunk style", 
+        "사실적인": "photorealistic",
+        "애니메이션": "anime style",
+        "판타지 아트": "fantasy art",
+        "만화": "comic book style",
+        "사이버델릭": "psychedelic art",
+        "아날로그": "analog photography",
+        "픽토그램": "pictogram style",
+        "미니멀리즘": "minimalist design",
+        "아트포스터": "vintage art poster",
+        "반 고흐": "Van Gogh style",
+        "에드워드 호퍼": "Edward Hopper style",
+        "앤디 워홀": "Andy Warhol pop art",
+        "구스타프 클림트": "Gustav Klimt style",
+        "무하": "Alphonse Mucha style",
+        "헤이즐 블룸": "Hazel Bloom digital art"
     }
     
     full_style = style_mapping.get(style, style)
@@ -439,7 +365,7 @@ def generate_prompt(user_input, style):
     gpt_prompt = f"""당신은 AI 이미지 프롬프트 엔지니어입니다.
 아래는 사용자의 간단한 한글 설명입니다.
 ---
-{user_input} {f'({full_style})' if style != '자동' else ''}
+{user_input} {f'({full_style})' if style != '기본' else ''}
 ---
 1. 이 내용을 바탕으로 색상, 질감, 배경, 분위기, 조명, 카메라 각도, 디테일, 동작, 감정 등 시각적 정보까지 추가해 풍성한 한글 프롬프트를 완성해줘.
 2. 두 번째로, 이 한글 프롬프트를 AI가 잘 이해할 수 있는 영어 프롬프트로 자연스럽게 번역해줘. 
@@ -509,12 +435,12 @@ def init_session_state():
         st.session_state.current_user_code = ""
     if "selected_size" not in st.session_state:
         st.session_state.selected_size = "1024x1024"
-    if "selected_style_category" not in st.session_state:
-        st.session_state.selected_style_category = "기본"
     if "selected_style" not in st.session_state:
-        st.session_state.selected_style = "자동"
+        st.session_state.selected_style = "기본"
     if "selected_num_images" not in st.session_state:
         st.session_state.selected_num_images = 1
+    if "aspect_ratio" not in st.session_state:
+        st.session_state.aspect_ratio = 1.0
 
 init_session_state()
 
@@ -522,7 +448,7 @@ init_session_state()
 st.markdown("""
 <div class="main-header">
     <h1>🎨 AI 이미지 생성기</h1>
-    <p>한글로 원하는 그림을 설명하면 AI가 전문적인 프롬프트를 만들고 아름다운 이미지를 생성합니다</p>
+    <p>텍스트를 이미지로</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -534,11 +460,11 @@ if st.session_state.user_authenticated:
         st.session_state.current_user_code = ""
 
 if not st.session_state.user_authenticated:
-    # 인증 카드
+    # 인증 입력
     st.markdown("""
-    <div class="auth-card">
-        <div class="section-title">🔐 이용자 인증</div>
-        <p style="margin-bottom: 2rem; color: #6c757d;">서비스 이용을 위해 제공받은 이용자 코드를 입력해주세요</p>
+    <div class="auth-input">
+        <h3>🔐 이용자 코드 입력</h3>
+        <p>서비스 이용을 위해 코드를 입력해주세요</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -552,7 +478,7 @@ if not st.session_state.user_authenticated:
             label_visibility="collapsed"
         )
         
-        if st.button("🔓 코드 확인", use_container_width=True):
+        if st.button("코드 확인", use_container_width=True):
             if input_code:
                 is_valid, limit, error_msg = check_user_access(input_code)
                 if is_valid:
@@ -572,141 +498,100 @@ else:
     
     if remaining == 0 and limit > 0:
         st.markdown("""
-        <div class="status-card expired">
-            <h3>⚠️ 사용 횟수 소진</h3>
-            <p>모든 이미지 생성 횟수를 사용하셨습니다. 새로운 코드를 입력해주세요.</p>
+        <div class="status-banner" style="background: #f8d7da; border-color: #f5c6cb; color: #721c24;">
+            ⚠️ 사용 횟수 소진 - 새로운 코드를 입력해주세요
         </div>
         """, unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns([1, 1, 1])
         with col2:
-            if st.button("🔄 새 코드 입력", use_container_width=True):
+            if st.button("새 코드 입력", use_container_width=True):
                 st.session_state.user_authenticated = False
                 st.session_state.current_user_code = ""
                 st.experimental_rerun()
     else:
         # 상태 표시
         if limit == -1:
-            st.markdown("""
-            <div class="status-card unlimited">
-                <h3>✨ 무제한 이용 가능</h3>
-                <p>무제한 코드로 이미지를 자유롭게 생성하세요!</p>
-            </div>
-            """, unsafe_allow_html=True)
+            status_text = "✅ 무제한 이용 가능"
         else:
-            st.markdown(f"""
-            <div class="status-card">
-                <h3>✅ 남은 이미지 생성 횟수: {remaining}장</h3>
-                <p>현재 {st.session_state.used_count}장 사용 / 총 {limit}장 가능</p>
-            </div>
-            """, unsafe_allow_html=True)
+            status_text = f"✅ 남은 횟수: {remaining}장"
+            
+        st.markdown(f"""
+        <div class="status-banner">
+            {status_text}
+        </div>
+        """, unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns([4, 1, 4])
         with col2:
-            if st.button("🔄 코드 변경", use_container_width=True):
+            if st.button("코드 변경", use_container_width=True):
                 st.session_state.user_authenticated = False
                 st.session_state.current_user_code = ""
                 st.experimental_rerun()
 
         # 메인 콘텐츠
-        st.markdown("""
-        <div class="section-card">
-            <div class="section-title">📝 이미지 설명 입력</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
         user_input = st.text_area(
             "원하는 이미지를 한글로 자세히 설명해주세요",
-            height=120,
+            height=100,
             placeholder="예: 석양이 지는 바다가에서 혼자 앉아있는 소녀, 따뜻한 분위기, 파스텔 톤"
         )
         
-        # 생성 옵션
-        st.markdown("""
-        <div class="section-card">
-            <div class="section-title">⚙️ 생성 옵션</div>
-        </div>
-        """, unsafe_allow_html=True)
+        # 스타일 선택
+        st.markdown('<div class="section-header">🎨 스타일</div>', unsafe_allow_html=True)
         
-        col1, col2 = st.columns(2)
+        # 스타일 그리드 (참고 이미지와 동일하게)
+        styles = [
+            ["기본", "없음", "사진 콜라주", "사진"],
+            ["사이버펑크", "사실적인", "애니메이션", "판타지 아트"], 
+            ["만화", "사이버델릭", "아날로그", "픽토그램"],
+            ["미니멀리즘", "아트포스터", "반 고흐", "에드워드 호퍼"],
+            ["앤디 워홀", "구스타프 클림트", "무하", "헤이즐 블룸"]
+        ]
         
-        with col1:
-            st.markdown("#### 🖼️ 이미지 크기/비율")
-            
-            size_options = [
-                ("1:1 정사각형", "1024x1024"),
-                ("세로형", "1024x1792"),
-                ("가로형", "1792x1024")
-            ]
-            
-            size_cols = st.columns(3)
-            for i, ((label, value), col) in enumerate(zip(size_options, size_cols)):
-                if col.button(
-                    label, 
-                    key=f"size_{i}",
-                    use_container_width=True
-                ):
-                    st.session_state.selected_size = value
-            
-            st.markdown(f"""
-            <div class="selection-info">
-                📐 선택됨: {[label for label, value in size_options if value == st.session_state.selected_size][0]}
-            </div>
-            """, unsafe_allow_html=True)
+        for row in styles:
+            cols = st.columns(4)
+            for i, (style, col) in enumerate(zip(row, cols)):
+                if style:  # 빈 셀이 아닌 경우만
+                    if col.button(style, key=f"style_{style}", use_container_width=True):
+                        st.session_state.selected_style = style
         
-        with col2:
-            st.markdown("#### 🎨 스타일/화풍")
-            
-            style_categories = {
-                "기본": ["자동", "사진"],
-                "애니메이션": ["디즈니", "픽사", "드림웍스", "일본애니"],
-                "예술": ["수채화", "유화", "연필드로잉", "픽토그램", "미니멀"],
-                "명화": ["반고흐", "호퍼", "워홀", "클림트", "무하"]
-            }
-            
-            # 카테고리 선택
-            cat_cols = st.columns(4)
-            for i, (category, col) in enumerate(zip(style_categories.keys(), cat_cols)):
-                if col.button(
-                    category, 
-                    key=f"cat_{i}",
-                    use_container_width=True
-                ):
-                    st.session_state.selected_style_category = category
-                    st.session_state.selected_style = style_categories[category][0]
-            
-            # 선택된 카테고리의 스타일들
-            styles_in_category = style_categories[st.session_state.selected_style_category]
-            
-            if len(styles_in_category) <= 4:
-                style_cols = st.columns(len(styles_in_category))
-            else:
-                style_cols = st.columns(4)
-                # 두 번째 줄이 필요한 경우
-                if len(styles_in_category) > 4:
-                    style_cols2 = st.columns(len(styles_in_category) - 4)
-            
-            for i, style in enumerate(styles_in_category):
-                if i < 4:
-                    col = style_cols[i]
-                else:
-                    col = style_cols2[i-4]
-                    
-                if col.button(
-                    style, 
-                    key=f"style_{i}",
-                    use_container_width=True
-                ):
-                    st.session_state.selected_style = style
-            
-            st.markdown(f"""
-            <div class="selection-info">
-                🎭 선택됨: {st.session_state.selected_style}
-            </div>
-            """, unsafe_allow_html=True)
+        # 비율 선택
+        st.markdown('<div class="section-header">📐 비율</div>', unsafe_allow_html=True)
         
-        # 버튼 섹션
-        st.markdown("---")
+        # 비율 슬라이더 (참고 이미지와 동일)
+        aspect_ratio = st.slider(
+            "비율",
+            min_value=0.5,
+            max_value=2.0,
+            value=1.0,
+            step=0.1,
+            label_visibility="collapsed"
+        )
+        
+        # 비율에 따른 크기 설정
+        if aspect_ratio < 0.8:
+            selected_size = "1024x1792"  # 세로형
+        elif aspect_ratio > 1.3:
+            selected_size = "1792x1024"  # 가로형
+        else:
+            selected_size = "1024x1024"  # 정사각형
+        
+        # 이미지 수 선택
+        st.markdown('<div class="section-header">🔢 이미지 수</div>', unsafe_allow_html=True)
+        
+        col1, col2, col3, col4, col5 = st.columns([1,1,1,1,6])
+        
+        for i, num in enumerate([1, 2, 3, 4]):
+            with [col1, col2, col3, col4][i]:
+                if st.button(str(num), key=f"num_{num}", use_container_width=True):
+                    st.session_state.selected_num_images = num
+        
+        # 고급 옵션 (참고 이미지와 동일)
+        with st.expander("🔧 고급 컨트롤"):
+            st.slider("지침 스케일", min_value=1, max_value=20, value=7)
+            st.toggle("고정된 시드 사용")
+        
+        # 버튼들
         col1, col2 = st.columns(2)
         
         with col1:
@@ -722,7 +607,7 @@ else:
                         st.experimental_rerun()
         
         with col2:
-            if st.button("⚡ 즉시 생성 (1장)", use_container_width=True):
+            if st.button("⚡ 즉시 생성", use_container_width=True):
                 if not user_input.strip():
                     st.warning("먼저 이미지 설명을 입력해주세요!")
                 elif 'eng_prompt' not in st.session_state:
@@ -731,44 +616,33 @@ else:
                     st.error("사용 가능한 횟수를 모두 사용했습니다.")
                 else:
                     with st.spinner("이미지를 생성 중입니다..."):
-                        images = generate_images(st.session_state.eng_prompt, st.session_state.selected_size, 1)
-                        if images:
+                        images = generate_images(st.session_state.eng_prompt, selected_size, st.session_state.selected_num_images)
+                        for url in images:
                             st.session_state.all_images.append({
-                                "url": images[0],
+                                "url": url,
                                 "caption": st.session_state.get("summary", "")
                             })
-                            if limit > 0:
-                                st.session_state.used_count += 1
-                            st.success("✅ 이미지가 생성되었습니다!")
-        
+                        if limit > 0:
+                            st.session_state.used_count += st.session_state.selected_num_images
+                        st.success("✅ 이미지가 생성되었습니다!")
+
         # 프롬프트 표시
         if st.session_state.get('eng_prompt'):
-            st.markdown("""
-            <div class="section-card">
-                <div class="section-title">🤖 생성된 프롬프트</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("**🔤 영어 프롬프트:**")
+            st.markdown('<div class="section-header">🤖 생성된 프롬프트</div>', unsafe_allow_html=True)
             st.code(st.session_state.eng_prompt, language='text')
             
-            with st.expander("📝 프롬프트 수정 및 설명", expanded=False):
-                st.markdown("**📖 프롬프트 해석:**")
+            with st.expander("📝 프롬프트 수정"):
                 st.info(st.session_state.get('kor_desc', ''))
                 
                 kor_prompt_update = st.text_area(
-                    "프롬프트를 수정하거나 추가 요청사항을 입력하세요",
+                    "프롬프트 수정",
                     value=st.session_state.get('kor_desc', ''),
-                    height=100,
-                    key="prompt_update"
+                    height=100
                 )
                 
                 if st.button("🔄 프롬프트 재생성"):
-                    with st.spinner("프롬프트를 재생성 중입니다..."):
-                        gpt_re_prompt = f"""아래 한글 프롬프트를 더 디테일하게 보완해 AI가 잘 이해할 수 있는 영어 프롬프트로 자연스럽게 번역해줘.
-색감, 분위기, 질감, 동작, 감정, 세부 연출 등 시각적 디테일을 추가하고,
-선택한 스타일 레퍼런스도 자연스럽게 포함해줘.
-반드시 코드블럭으로 출력해.
+                    with st.spinner("재생성 중..."):
+                        gpt_re_prompt = f"""아래 한글 프롬프트를 영어로 번역해줘.
 ```
 {kor_prompt_update}
 ```"""
@@ -784,89 +658,18 @@ else:
                             st.session_state.eng_prompt = re_eng_match.group(1).strip()
                         st.session_state.kor_desc = kor_prompt_update
                         st.experimental_rerun()
-            
-            # 이미지 생성 옵션
-            st.markdown("""
-            <div class="section-card">
-                <div class="section-title">🎨 이미지 생성</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            col1, col2 = st.columns([1, 2])
-            
-            with col1:
-                st.markdown("#### 📊 생성할 이미지 수")
-                
-                num_cols = st.columns(4)
-                for i, num in enumerate([1, 2, 3, 4]):
-                    if num_cols[i].button(
-                        f"{num}장", 
-                        key=f"num_{i}",
-                        use_container_width=True
-                    ):
-                        st.session_state.selected_num_images = num
-                
-                st.markdown(f"""
-                <div class="selection-info">
-                    🔢 선택됨: {st.session_state.selected_num_images}장
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown("#### ")  # 빈 공간
-                st.markdown("#### ")  # 빈 공간
-                if st.button("🎨 이미지 생성 시작!", use_container_width=True):
-                    current_limit = limit if limit > 0 else float('inf')
-                    if st.session_state.used_count + st.session_state.selected_num_images > current_limit:
-                        st.error(f"생성 가능 횟수를 초과합니다. (현재: {st.session_state.used_count}/{limit if limit > 0 else '무제한'})")
-                    else:
-                        with st.spinner(f"🎨 {st.session_state.selected_num_images}장의 이미지를 생성 중입니다..."):
-                            images = generate_images(
-                                st.session_state.eng_prompt, 
-                                st.session_state.selected_size, 
-                                st.session_state.selected_num_images
-                            )
-                            
-                            for url in images:
-                                st.session_state.all_images.append({
-                                    "url": url,
-                                    "caption": st.session_state.summary
-                                })
-                            
-                            if limit > 0:
-                                st.session_state.used_count += st.session_state.selected_num_images
-                            
-                            st.success(f"✅ {len(images)}장의 이미지가 생성되었습니다!")
-                            
-                            if limit > 0 and st.session_state.used_count >= limit:
-                                st.info("ℹ️ 모든 이미지 생성 횟수를 사용하셨습니다.")
-                                time.sleep(2)
-                                st.experimental_rerun()
 
         # 생성된 이미지 갤러리
         if st.session_state.all_images:
-            st.markdown("""
-            <div class="section-card">
-                <div class="section-title">🖼️ 생성된 이미지 갤러리</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown('<div class="section-header">🖼️ 생성된 이미지</div>', unsafe_allow_html=True)
             
             images = st.session_state.all_images
             n_images = len(images)
             
-            # 반응형 그리드 레이아웃
-            if n_images == 1:
-                cols = 1
-            elif n_images <= 2:
-                cols = 2
-            elif n_images <= 4:
-                cols = 2
-            else:
-                cols = 3
-            
-            # 이미지 표시
-            for i in range(0, n_images, cols):
-                row_cols = st.columns(cols)
+            # 이미지 그리드
+            cols_per_row = min(3, n_images)
+            for i in range(0, n_images, cols_per_row):
+                row_cols = st.columns(cols_per_row)
                 
                 for j, col in enumerate(row_cols):
                     idx = i + j
@@ -874,46 +677,16 @@ else:
                         img = images[idx]
                         
                         with col:
-                            # 이미지 카드
-                            st.markdown(f"""
-                            <div class="image-card">
-                            """, unsafe_allow_html=True)
-                            
                             st.image(
                                 img["url"],
-                                caption=f"🎨 이미지 {idx+1}: {img['caption']}",
+                                caption=f"이미지 {idx+1}: {img['caption']}",
                                 use_container_width=True
                             )
                             
-                            # 다운로드 버튼
                             try:
                                 img_data = requests.get(img["url"]).content
                                 st.download_button(
-                                    label=f"📥 이미지 {idx+1} 다운로드",
+                                    label=f"📥 다운로드",
                                     data=img_data,
                                     file_name=f"ai_image_{idx+1}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png",
                                     mime="image/png",
-                                    key=f"download_{idx}",
-                                    use_container_width=True
-                                )
-                            except Exception as e:
-                                st.error(f"다운로드 준비 중 오류: {e}")
-                            
-                            st.markdown("</div>", unsafe_allow_html=True)
-            
-            # 갤러리 관리 버튼
-            st.markdown("---")
-            col1, col2, col3 = st.columns([2, 1, 2])
-            with col2:
-                if st.button("🗑️ 모든 이미지 삭제", type="secondary", use_container_width=True):
-                    st.session_state.all_images = []
-                    st.experimental_rerun()
-
-# 푸터
-st.markdown("---")
-st.markdown("""
-<div style='text-align: center; padding: 2rem; color: #6c757d; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; margin-top: 2rem;'>
-    <h4 style='margin-bottom: 1rem; color: #495057;'>✨ AI 이미지 생성기 by FAITH ✨</h4>
-    <p style='margin: 0; font-size: 0.9rem;'>Powered by OpenAI DALL-E 3 | 최고의 AI 이미지 생성 경험을 제공합니다</p>
-</div>
-""", unsafe_allow_html=True)
