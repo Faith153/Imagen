@@ -615,7 +615,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: #666; padding: 1rem;'>"
-    "© 2025 AI 이미지 생성기 | Powered by OpenAI DALL-E 3"
+    "© AI 이미지 생성기 by Faith | OpenAI DALL-E 3"
     "</div>",
     unsafe_allow_html=True
 )
