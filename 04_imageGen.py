@@ -226,10 +226,32 @@ def check_user_access(user_code):
 
 def generate_prompt(user_input, style):
     """프롬프트 생성"""
+    # 스타일 매핑
+    style_mapping = {
+        "자동": "Auto, best fit",
+        "사진": "Real photo",
+        "디즈니": "Disney style cartoon",
+        "픽사 3D": "Pixar 3D animation",
+        "드림웍스": "Dreamworks style",
+        "일본 애니": "Japanese anime",
+        "수채화": "Watercolor painting",
+        "유화": "Oil painting",
+        "연필": "Pencil sketch",
+        "픽토그램": "Flat pictogram icon",
+        "미니멀": "Minimalist flat design",
+        "반 고흐": "Vincent van Gogh style",
+        "에드워드 호퍼": "Edward Hopper style",
+        "앤디 워홀": "Andy Warhol pop art",
+        "클림트": "Gustav Klimt style",
+        "무하": "Alphonse Mucha Art Nouveau"
+    }
+    
+    full_style = style_mapping.get(style, style)
+    
     gpt_prompt = f"""당신은 AI 이미지 프롬프트 엔지니어입니다.
 아래는 사용자의 간단한 한글 설명입니다.
 ---
-{user_input} {f'({style})' if style != '자동(Auto, best fit)' else ''}
+{user_input} {f'({full_style})' if style != '자동' else ''}
 ---
 1. 이 내용을 바탕으로 색상, 질감, 배경, 분위기, 조명, 카메라 각도, 디테일, 동작, 감정 등 시각적 정보까지 추가해 풍성한 한글 프롬프트를 완성해줘.
 2. 두 번째로, 이 한글 프롬프트를 AI가 잘 이해할 수 있는 영어 프롬프트로 자연스럽게 번역해줘. 
@@ -393,35 +415,53 @@ else:
         
         with col1:
             st.markdown("**이미지 크기/비율**")
-            size_options = ["1:1 정사각형 (1024×1024)", "세로형 (1024×1792)", "가로형 (1792×1024)"]
-            selected_size_idx = st.radio(
-                "크기 선택",
-                range(len(size_options)),
-                format_func=lambda x: size_options[x],
-                label_visibility="collapsed",
-                key="size_radio",
-                horizontal=True
-            )
-            # 크기 매핑
-            size_map = ["1024x1024", "1024x1792", "1792x1024"]
-            selected_size = size_map[selected_size_idx]
+            # 버튼 스타일로 크기 선택
+            size_options = ["1:1 정사각형", "세로형", "가로형"]
+            size_values = ["1024x1024", "1024x1792", "1792x1024"]
+            
+            if 'selected_size_idx' not in st.session_state:
+                st.session_state.selected_size_idx = 0
+            
+            cols = st.columns(3)
+            for i, (option, col) in enumerate(zip(size_options, cols)):
+                if col.button(option, key=f"size_btn_{i}", use_container_width=True):
+                    st.session_state.selected_size_idx = i
+            
+            selected_size = size_values[st.session_state.selected_size_idx]
+            st.info(f"선택됨: {size_options[st.session_state.selected_size_idx]}")
         
         with col2:
             st.markdown("**스타일/화풍**")
-            style_options = [
-                "자동(Auto, best fit)", "사진(Real photo)", "디즈니 스타일", "픽사 3D", "드림웍스",
-                "일본 애니메이션", "수채화", "유화", "연필 드로잉", "픽토그램", "미니멀리즘",
-                "아트포스터", "반 고흐", "에드워드 호퍼", "앤디 워홀", "구스타프 클림트", "무하", "헤이즐 블룸"
-            ]
-            selected_style_idx = st.radio(
-                "스타일 선택",
-                range(len(style_options)),
-                format_func=lambda x: style_options[x],
-                label_visibility="collapsed",
-                key="style_radio",
-                horizontal=False
-            )
-            selected_style = style_options[selected_style_idx]
+            # 카테고리별로 정리된 스타일
+            style_categories = {
+                "기본": ["자동", "사진"],
+                "애니메이션": ["디즈니", "픽사 3D", "드림웍스", "일본 애니"],
+                "예술": ["수채화", "유화", "연필", "픽토그램", "미니멀"],
+                "명화": ["반 고흐", "에드워드 호퍼", "앤디 워홀", "클림트", "무하"]
+            }
+            
+            if 'selected_category' not in st.session_state:
+                st.session_state.selected_category = "기본"
+            if 'selected_style' not in st.session_state:
+                st.session_state.selected_style = "자동"
+            
+            # 카테고리 선택
+            category_cols = st.columns(4)
+            for i, (category, col) in enumerate(zip(style_categories.keys(), category_cols)):
+                if col.button(category, key=f"cat_btn_{i}", use_container_width=True):
+                    st.session_state.selected_category = category
+                    st.session_state.selected_style = style_categories[category][0]
+            
+            # 선택된 카테고리의 스타일들
+            styles_in_category = style_categories[st.session_state.selected_category]
+            style_cols = st.columns(len(styles_in_category))
+            
+            for i, (style, col) in enumerate(zip(styles_in_category, style_cols)):
+                if col.button(style, key=f"style_btn_{i}", use_container_width=True):
+                    st.session_state.selected_style = style
+            
+            selected_style = st.session_state.selected_style
+            st.info(f"선택됨: {selected_style}")
         
         # 버튼 섹션
         col1, col2 = st.columns(2)
@@ -505,13 +545,17 @@ else:
             col1, col2 = st.columns([1, 2])
             
             with col1:
-                num_images = st.radio(
-                    "생성할 이미지 수",
-                    [1, 2, 3, 4],
-                    index=0,
-                    key="num_images_radio",
-                    horizontal=True
-                )
+                st.markdown("**생성할 이미지 수**")
+                if 'selected_num_images' not in st.session_state:
+                    st.session_state.selected_num_images = 1
+                
+                num_cols = st.columns(4)
+                for i, (num, col) in enumerate(zip([1, 2, 3, 4], num_cols)):
+                    if col.button(f"{num}장", key=f"num_btn_{i}", use_container_width=True):
+                        st.session_state.selected_num_images = num
+                
+                st.info(f"선택됨: {st.session_state.selected_num_images}장")
+                num_images = st.session_state.selected_num_images
             
             with col2:
                 if st.button("🎨 이미지 생성", use_container_width=True):
