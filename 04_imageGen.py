@@ -690,3 +690,8 @@ else:
                                     data=img_data,
                                     file_name=f"ai_image_{idx+1}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png",
                                     mime="image/png",
+                                    key=f"download_{idx}",
+                                    use_container_width=True
+                                )
+                            except Exception as e:
+                                st.error(f"다운로드 준비 중 오류: {e}")
