@@ -393,38 +393,35 @@ else:
         
         with col1:
             st.markdown("**이미지 크기/비율**")
-            selected_size_option = st.selectbox(
+            size_options = ["1:1 정사각형 (1024×1024)", "세로형 (1024×1792)", "가로형 (1792×1024)"]
+            selected_size_idx = st.radio(
                 "크기 선택",
-                ["1:1 정사각형 (1024×1024)", "세로형 (1024×1792)", "가로형 (1792×1024)"],
-                index=0,
+                range(len(size_options)),
+                format_func=lambda x: size_options[x],
                 label_visibility="collapsed",
-                key="size_selector"
+                key="size_radio",
+                horizontal=True
             )
             # 크기 매핑
-            size_map = {
-                "1:1 정사각형 (1024×1024)": "1024x1024",
-                "세로형 (1024×1792)": "1024x1792", 
-                "가로형 (1792×1024)": "1792x1024"
-            }
-            selected_size = size_map[selected_size_option]
+            size_map = ["1024x1024", "1024x1792", "1792x1024"]
+            selected_size = size_map[selected_size_idx]
         
         with col2:
             st.markdown("**스타일/화풍**")
-            selected_style = st.selectbox(
+            style_options = [
+                "자동(Auto, best fit)", "사진(Real photo)", "디즈니 스타일", "픽사 3D", "드림웍스",
+                "일본 애니메이션", "수채화", "유화", "연필 드로잉", "픽토그램", "미니멀리즘",
+                "아트포스터", "반 고흐", "에드워드 호퍼", "앤디 워홀", "구스타프 클림트", "무하", "헤이즐 블룸"
+            ]
+            selected_style_idx = st.radio(
                 "스타일 선택",
-                [
-                    "자동(Auto, best fit)", "사진(Real photo)", "디즈니 스타일(Disney style cartoon)",
-                    "픽사 3D 스타일(Pixar 3D animation)", "드림웍스 스타일(Dreamworks style)",
-                    "일본풍 애니메이션(Japanese anime)", "수채화(Watercolor painting)", "유화(Oil painting)",
-                    "연필 드로잉(Pencil sketch)", "픽토그램(Flat pictogram icon)", "미니멀리즘(Minimalist flat design)",
-                    "아트포스터(Vintage art poster)", "반 고흐(Vincent van Gogh style)", "에드워드 호퍼(Edward Hopper style)",
-                    "앤디 워홀(Andy Warhol pop art)", "구스타프 클림트(Gustav Klimt style)", "무하(Alphonse Mucha Art Nouveau)",
-                    "헤이즐 블룸(Hazel Bloom digital art)"
-                ],
-                index=0,
+                range(len(style_options)),
+                format_func=lambda x: style_options[x],
                 label_visibility="collapsed",
-                key="style_selector"
+                key="style_radio",
+                horizontal=False
             )
+            selected_style = style_options[selected_style_idx]
         
         # 버튼 섹션
         col1, col2 = st.columns(2)
@@ -508,11 +505,12 @@ else:
             col1, col2 = st.columns([1, 2])
             
             with col1:
-                num_images = st.selectbox(
+                num_images = st.radio(
                     "생성할 이미지 수",
                     [1, 2, 3, 4],
                     index=0,
-                    key="num_images_selector"
+                    key="num_images_radio",
+                    horizontal=True
                 )
             
             with col2:
