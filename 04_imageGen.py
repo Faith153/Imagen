@@ -469,7 +469,6 @@ if is_valid:
             styles,
             label_visibility="collapsed"
         )
-    
     st.markdown('</div>', unsafe_allow_html=True)
     
     # 버튼 섹션
@@ -478,7 +477,7 @@ if is_valid:
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("🔧 프롬프트 생성", use_container_width=True):
+        if st.button("🔧 자동 전문적 프롬프트 생성", use_container_width=True):
             if not user_input.strip():
                 st.warning("먼저 이미지 설명을 입력해주세요!")
             else:
@@ -658,7 +657,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: #666; padding: 1rem;'>"
-    "© 2025 AI 이미지 생성기 | Powered by OpenAI DALL-E 3"
+    "© AI 이미지 생성기 by FAITH | OpenAI DALL-E 3"
     "</div>",
     unsafe_allow_html=True
 )
