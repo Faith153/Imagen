@@ -6,6 +6,8 @@ import time
 import os
 import json
 import hashlib
+import random
+import string
 from datetime import datetime, timedelta
 
 # 페이지 설정
@@ -186,37 +188,48 @@ client = init_openai_client()
 def get_secure_session_id():
     """보안이 강화된 세션 ID 생성"""
     if 'secure_session_id' not in st.session_state:
-        # 세션별 고유 ID 생성 (IP + 타임스탬프 + 랜덤)
-        session_data = f"{st.runtime.caching.cache_data_api.get_stats()}{time.time()}"
+        # 세션별 고유 ID 생성 (랜덤 + 타임스탬프 기반)
+        import random
+        import string
+        random_str = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+        session_data = f"{random_str}_{time.time()}_{os.getpid()}"
         st.session_state.secure_session_id = hashlib.sha256(session_data.encode()).hexdigest()[:16]
     return st.session_state.secure_session_id
 
 def get_fail_log_path():
     """세션별 실패 로그 경로"""
-    session_id = get_secure_session_id()
-    today = datetime.now().strftime("%Y%m%d")
-    return f".failcount_{session_id}_{today}.json"
+    try:
+        session_id = get_secure_session_id()
+        today = datetime.now().strftime("%Y%m%d")
+        return f".failcount_{session_id}_{today}.json"
+    except Exception:
+        # 세션 ID 생성 실패 시 기본값 사용
+        today = datetime.now().strftime("%Y%m%d")
+        fallback_id = hashlib.sha256(f"fallback_{time.time()}".encode()).hexdigest()[:8]
+        return f".failcount_{fallback_id}_{today}.json"
 
 def get_fail_info():
     """실패 정보 조회"""
-    path = get_fail_log_path()
-    if os.path.exists(path):
-        try:
+    try:
+        path = get_fail_log_path()
+        if os.path.exists(path):
             with open(path, "r") as f:
                 data = json.load(f)
                 return data.get("fail_count", 0), data.get("fail_time", 0)
-        except:
-            return 0, 0
+    except Exception:
+        # 파일 읽기 실패 시 기본값 반환
+        pass
     return 0, 0
 
 def set_fail_info(fail_count, fail_time):
     """실패 정보 저장"""
-    path = get_fail_log_path()
     try:
+        path = get_fail_log_path()
         with open(path, "w") as f:
             json.dump({"fail_count": fail_count, "fail_time": fail_time}, f)
-    except:
-        pass  # 파일 저장 실패 시 무시
+    except Exception:
+        # 파일 저장 실패 시 무시 (메모리에서만 관리)
+        pass
 
 def check_user_access(user_code):
     """사용자 접근 권한 확인"""
@@ -237,9 +250,15 @@ def check_user_access(user_code):
             set_fail_info(0, 0)
             fail_count = 0
     
-    # 코드 검증
-    user_limits = st.secrets.get("user_codes", {})
-    limit = int(user_limits.get(user_code, 0))
+    # 코드 검증 - secrets 파일 안전하게 읽기
+    try:
+        user_limits = st.secrets.get("user_codes", {})
+        # 문자열로 저장된 경우를 대비해 안전하게 변환
+        limit_value = user_limits.get(user_code, "0")
+        limit = int(limit_value)
+    except Exception as e:
+        st.error(f"설정 파일 읽기 오류: {e}")
+        return False, 0, "시스템 오류가 발생했습니다."
     
     if limit > 0 or limit == -1:
         # 성공 시 실패 카운트 초기화
@@ -347,6 +366,15 @@ st.markdown("""
 # 사이드바 - 이용자 코드만
 with st.sidebar:
     st.markdown("### 🔐 이용자 인증")
+    
+    # 디버그 정보 (개발 중에만 사용)
+    if st.checkbox("디버그 모드", value=False):
+        try:
+            available_codes = list(st.secrets.get("user_codes", {}).keys())
+            st.write(f"등록된 코드 수: {len(available_codes)}")
+            st.write("등록된 코드들:", available_codes)
+        except Exception as e:
+            st.error(f"Secrets 파일 읽기 오류: {e}")
     
     # 보안 강화된 코드 입력 (자동완성 방지)
     user_code = st.text_input(
@@ -615,7 +643,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: #666; padding: 1rem;'>"
-    "© AI 이미지 생성기 by Faith | OpenAI DALL-E 3"
+    "© 2025 AI 이미지 생성기 | Powered by OpenAI DALL-E 3"
     "</div>",
     unsafe_allow_html=True
 )
